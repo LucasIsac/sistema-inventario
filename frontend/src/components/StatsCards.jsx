@@ -1,6 +1,6 @@
-import { Package, AlertTriangle, DollarSign } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
+import { formatCurrency, formatCurrencyShort } from "@/lib/currency";
 
-// eslint-disable-next-line no-unused-vars
 const StatsCard = ({ icon: Icon, label, value, change, changeColor }) => {
   return (
     <div className="bg-card border border-border/60 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 hover:border-accent/20">
@@ -18,24 +18,15 @@ const StatsCard = ({ icon: Icon, label, value, change, changeColor }) => {
   );
 };
 
-export default function StatsCards({ stats }) {
+export default function StatsCards({ stats, todaySales }) {
   const { totalValue = 0, lowStockCount = 0, totalProducts = 0 } = stats || {};
 
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <StatsCard
         icon={Package}
         label="Valor Total del Inventario"
-        value={formatCurrency(totalValue)}
+        value={formatCurrencyShort(totalValue)}
         change={`${totalProducts} productos total`}
         changeColor="text-emerald-400"
       />
@@ -47,10 +38,19 @@ export default function StatsCards({ stats }) {
         changeColor="text-destructive"
       />
       <StatsCard
-        icon={DollarSign}
+        icon={TrendingUp}
         label="Ventas Hoy"
-        value="$0" // Placeholder until we have sales history
-        change="Sin datos aún"
+        value={formatCurrencyShort(todaySales?.totalRevenue || 0)}
+        change={`${todaySales?.totalQuantity || 0} unidades • ${todaySales?.totalSales || 0} ventas`}
+        changeColor="text-primary"
+      />
+      <StatsCard
+        icon={DollarSign}
+        label="Ticket Promedio"
+        value={todaySales?.totalSales > 0 
+          ? formatCurrency(todaySales.totalRevenue / todaySales.totalSales) 
+          : formatCurrency(0)}
+        change={todaySales?.totalSales > 0 ? "Por transacción" : "Sin ventas hoy"}
         changeColor="text-muted-foreground"
       />
     </div>

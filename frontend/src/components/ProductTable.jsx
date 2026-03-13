@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 
 const ProgressBar = ({ value, max, isLow }) => {
-  // Ensure we don't divide by zero and handle potential string inputs
   const safeValue = Number(value) || 0;
-  const safeMax = Number(max) || 1; // Default to 1 to avoid division by zero
-  const percentage = Math.min((safeValue / safeMax) * 100, 100); // Cap at 100%
+  const safeMax = Number(max) || 1;
+  const percentage = Math.min((safeValue / safeMax) * 100, 100);
 
   return (
     <div className="w-full">
@@ -30,6 +30,7 @@ export default function ProductTable({
   error,
   onSale,
   onAddStock,
+  onEdit,
 }) {
   if (loading) {
     return (
@@ -43,12 +44,20 @@ export default function ProductTable({
     return <div className="p-8 text-center text-destructive">{error}</div>;
   }
 
-  const handleSellClick = (product) => {
+  const handleSellClick = (e, product) => {
+    e.stopPropagation();
     onSale(product.sku);
   };
 
-  const handleAddStockClick = (product) => {
+  const handleAddStockClick = (e, product) => {
+    e.stopPropagation();
     onAddStock(product.sku);
+  };
+
+  const handleRowClick = (product) => {
+    if (onEdit) {
+      onEdit(product);
+    }
   };
 
   return (
@@ -88,7 +97,8 @@ export default function ProductTable({
             return (
               <tr
                 key={product._id || product.id || idx}
-                className={`border-b border-border hover:bg-secondary/20 transition-colors ${
+                onClick={() => handleRowClick(product)}
+                className={`border-b border-border hover:bg-secondary/20 transition-colors cursor-pointer ${
                   idx % 2 === 0 ? "bg-card/50" : ""
                 }`}
               >
@@ -102,7 +112,7 @@ export default function ProductTable({
                   {product.supplier || "N/A"}
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-right text-accent">
-                  ${Number(product.salePrice).toFixed(2)}
+                  {formatCurrency(product.salePrice)}
                 </td>
                 <td className="px-6 py-4">
                   <ProgressBar
@@ -125,14 +135,14 @@ export default function ProductTable({
                 <td className="px-6 py-4 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <button
-                      onClick={() => handleAddStockClick(product)}
+                      onClick={(e) => handleAddStockClick(e, product)}
                       className="p-1 bg-secondary text-foreground rounded hover:bg-secondary/80 transition-colors"
                       title="Cargar Stock"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleSellClick(product)}
+                      onClick={(e) => handleSellClick(e, product)}
                       className="px-3 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 transition-colors"
                     >
                       Vender

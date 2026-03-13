@@ -1,120 +1,157 @@
 # Sistema de Inventario Inteligente (MERN + n8n)
 
-Este proyecto es un sistema de gestión de inventarios desarrollado con el stack **MERN** (MongoDB, Express, React, Node.js) que integra automatización mediante **n8n**. Su objetivo principal es mantener un control en tiempo real del stock de productos y notificar proactivamente cuando las existencias caen por debajo de los niveles permitidos.
+Sistema de gestión de inventarios desarrollado con el stack **MERN** (MongoDB, Express, React, Node.js) que integra automatización mediante **n8n**. Su objetivo principal es mantener un control en tiempo real del stock de productos y notificar proactivamente cuando las existencias caen por debajo de los niveles permitidos.
 
 ---
 
-## 🚀 Estado Actual del Proyecto
+## 🚀 Características
 
-El sistema es un **prototipo funcional** que permite la gestión básica del inventario y la automatización de alertas. La aplicación es capaz de realizar operaciones CRUD sobre productos, gestionar entradas y salidas de stock, y conectarse con servicios externos vía Webhooks.
+### Gestión de Productos
+- ✅ Listado de productos con búsqueda por nombre o SKU
+- ✅ Creación de nuevos productos con atributos detallados (SKU, Precio Compra/Venta, Proveedor, Stock Mínimo)
+- ✅ **Edición de productos**: Click sobre cualquier producto para modificar precios y datos
+- ✅ Visualización de ganancia por unidad en tiempo real
 
-### ✅ Qué hace el sistema (Funcionalidades)
+### Control de Stock
+- ✅ **Registro de Ventas**: Disminuye el stock del producto seleccionado
+- ✅ **Reabastecimiento**: Permite agregar stock a productos existentes
+- ✅ Historial completo de ventas guardado en base de datos
 
-1.  **Gestión de Productos**:
-    - Listado de productos con búsqueda por nombre o SKU.
-    - Creación de nuevos productos con atributos detallados (SKU, Precio Compra/Venta, Proveedor, Stock Mínimo, etc.).
-2.  **Control de Stock**:
-    - **Registro de Ventas**: Disminuye el stock del producto seleccionado.
-    - **Reabastecimiento**: Permite agregar stock a productos existentes.
-3.  **Dashboard en Tiempo Real**:
-    - Cálculo automático del valor total del inventario.
-    - Conteo de productos con stock bajo.
-    - Gráficos de distribución por categoría y niveles de inventario.
-4.  **Automatización con n8n**:
-    - Detecta automáticamente cuando una venta reduce el stock por debajo del `minStock`.
-    - Envía una notificación (payload JSON) a un webhook de n8n para gatillar flujos de trabajo (ej. enviar email, alerta a Slack, crear pedido a proveedor).
+### Dashboard en Tiempo Real
+- ✅ Cálculo automático del valor total del inventario
+- ✅ Conteo de productos con stock bajo
+- ✅ Gráficos de distribución por categoría y niveles de inventario
+- ✅ **Ventas del día**: Ingresos, unidades vendidas, ticket promedio
 
-### ❌ Qué NO hace / Limitaciones actuales
+### Reportes
+- ✅ Reportes por período: Hoy, Esta Semana, Este Mes
+- ✅ Productos vendidos con ingresos por producto
+- ✅ Detalle de ventas con fechas y totales
 
-- **No hay Autenticación**: El sistema es abierto; no hay login ni roles de usuario (admin/empleado).
-- **Sin Historial de Ventas**: Las "ventas" solo descuentan el stock numérico. **No se guarda un registro histórico** de las transacciones (quién vendió, cuándo, total de la venta, etc.).
-- **Botones "Mockup"**: En el dashboard, los botones de "Ver Reportes", "Exportar Datos" y "Configuración" son visuales y no tienen funcionalidad implementada.
-- **Validación Simplificada**: Si bien hay validaciones básicas, faltan manejos de errores avanzados en el frontend para casos de borde.
+### Exportación de Datos
+- ✅ **Inventario Completo**: Productos con precios, stock, valor total y estado
+- ✅ **Historial de Ventas**: Detalle de transacciones por período
+- ✅ **Resumen de Ventas**: Comparativa Hoy vs Semana vs Mes
+- ✅ **Kardex**: Movimientos de inventario con rentabilidad
+- ✅ Formato CSV optimizado para Excel (compatible con Argentina)
+
+### Configuración
+- ✅ Nombre de empresa personalizable
+- ✅ Selección de moneda (ARS, USD, EUR)
+- ✅ Alertas de stock bajo activables
+- ✅ Actualización automática configurable
+
+### Integraciones
+- ✅ **n8n**: Notificaciones automáticas cuando el stock cae por debajo del mínimo
+- ✅ Webhook configurado para conectar con flujos de trabajo
 
 ---
 
 ## 🛠 Arquitectura Técnica
 
-El proyecto se divide en dos partes principales:
-
-| Componente        | Tecnología              | Descripción                                                  |
-| :---------------- | :---------------------- | :----------------------------------------------------------- |
-| **Backend**       | Node.js + Express       | API RESTful que maneja la lógica de negocio y conexión a DB. |
-| **Base de Datos** | MongoDB (Atlas/Local)   | Almacena la colección de `products`.                         |
-| **Frontend**      | React + Vite + Tailwind | Interfaz de usuario moderna y responsiva (SPA).              |
-| **Integración**   | n8n + Ngrok             | Automatización de alertas vía Webhooks.                      |
-
-### Integración con n8n
-
-La "magia" ocurre en el controlador de ventas (`productController.js`).
-
-1.  Cuando se registra una venta (`POST /api/products/venta`), el sistema verifica: `stock_actual < stock_minimo`.
-2.  Si es verdadero, el backend envía una petición POST a la URL definida en `N8N_WEBHOOK_URL` junto con los datos del producto.
-3.  **Nota**: Para entornos de desarrollo local, se requiere **Ngrok** para exponer el puerto local a internet si n8n está en la nube.
+| Componente | Tecnología | Descripción |
+| :--------- | :--------- | :---------- |
+| **Backend** | Node.js + Express | API RESTful con validación y seguridad |
+| **Base de Datos** | MongoDB (Atlas/Local) | Almacena productos y ventas |
+| **Frontend** | React + Vite + Tailwind | Interfaz moderna y responsiva (SPA) |
+| **Integración** | n8n + Ngrok | Automatización de alertas vía Webhooks |
 
 ---
 
-## 📦 Instalación y Uso
+## 📦 Instalación
 
 ### Prerrequisitos
-
-- Node.js (v14+)
+- Node.js (v18+)
 - MongoDB (corriendo localmente o URI de Atlas)
 - (Opcional) n8n instalado o cuenta cloud + Ngrok
 
-### 1. Configuración del Backend
+### 1. Clonar el repositorio
 
-1.  Navega a la carpeta `backend`:
-    ```bash
-    cd backend
-    ```
-2.  Instala las dependencias:
-    ```bash
-    npm install
-    ```
-3.  Crea un archivo `.env` en `backend/` con lo siguiente:
-    ```env
-    PORT=5000
-    MONGO_URI=mongodb://localhost:27017/tu_base_de_datos
-    N8N_WEBHOOK_URL=https://tu-webhook-n8n.com/webhook/...
-    ```
-4.  Inicia el servidor:
-    ```bash
-    npm run dev
-    ```
+```bash
+git clone https://github.com/LucasIsac/sistema-inventario.git
+cd sistema-inventario
+```
 
-### 2. Configuración del Frontend
+### 2. Configuración del Backend
 
-1.  Navega a la carpeta `frontend`:
-    ```bash
-    cd frontend
-    ```
-2.  Instala las dependencias:
-    ```bash
-    npm install
-    ```
-3.  (Opcional) Configura el proxy si es necesario en `vite.config.js` (por defecto asume backend en puerto 5000 o usa proxy conf).
-4.  Inicia la aplicación:
-    ```bash
-    npm run dev
-    ```
+```bash
+cd backend
+npm install
+```
+
+Crea un archivo `.env` en `backend/` con:
+
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/inventario
+N8N_WEBHOOK_URL=https://tu-webhook-n8n.com/webhook/...
+```
+
+Inicia el servidor:
+
+```bash
+npm run dev
+```
+
+### 3. Configuración del Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+La aplicación estará disponible en `http://localhost:5173`
 
 ---
 
 ## 📡 Endpoints Principales
 
-| Método | Endpoint                  | Descripción                                                                   |
-| :----- | :------------------------ | :---------------------------------------------------------------------------- |
-| `GET`  | `/api/products`           | Obtiene todos los productos.                                                  |
-| `POST` | `/api/products`           | Crea un nuevo producto.                                                       |
-| `POST` | `/api/products/venta`     | Reduce stock. **Dispara alerta n8n si es necesario**. body: `{sku, quantity}` |
-| `POST` | `/api/products/add-stock` | Aumenta stock. body: `{sku, quantity}`                                        |
+| Método | Endpoint | Descripción |
+| :----- | :------- | :---------- |
+| `GET` | `/api/products` | Obtiene todos los productos |
+| `POST` | `/api/products` | Crea un nuevo producto |
+| `PUT` | `/api/products/:sku` | Actualiza un producto |
+| `POST` | `/api/products/venta` | Registra una venta (descarta stock) |
+| `POST` | `/api/products/add-stock` | Agrega stock a un producto |
+| `GET` | `/api/products/ventas-hoy` | Obtiene ventas del día |
+| `GET` | `/api/products/reportes?period=day\|week\|month` | Reportes por período |
 
 ---
 
-## 🔮 Próximos Pasos (Roadmap)
+## 📊 Moneda
 
-1.  Implementar Login/Registro (JWT).
-2.  Crear modelo `Sale` para guardar historial de transacciones.
-3.  Implementar funcionalidad real de reportes y exportación (CSV/PDF).
-4.  Mejorar manejo de errores y validaciones de formularios en el Frontend.
+El sistema está configurado para trabajar con **Pesos Argentinos (ARS)** por defecto. Los precios se muestran en formato `$` con separador de miles.
+
+---
+
+## 🔧 Tecnologías Utilizadas
+
+### Backend
+- Express.js
+- Mongoose
+- express-validator
+- Helmet (seguridad)
+- CORS
+- Axios
+
+### Frontend
+- React 19
+- Vite
+- Tailwind CSS 4
+- Recharts
+- Axios
+- Lucide React
+- React Router DOM
+
+---
+
+## 📝 Licencia
+
+ISC
+
+---
+
+## 👤 Autor
+
+Lucas Isaac De la Fuente

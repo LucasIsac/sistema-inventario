@@ -9,16 +9,25 @@ import SaleModal from "@/components/SaleModal";
 import AddStockModal from "@/components/AddStockModal";
 import InventoryStatsChart from "@/components/InventoryStatsChart";
 import CategoryDistribution from "@/components/CategoryDistribution";
+import ReportesModal from "@/components/ReportesModal";
+import EditProductModal from "@/components/EditProductModal";
+import ExportModal from "@/components/ExportModal";
+import ConfigModal from "@/components/ConfigModal";
 
 export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [todaySales, setTodaySales] = useState({ totalRevenue: 0, totalQuantity: 0, totalSales: 0 });
 
   // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Search State
@@ -29,13 +38,10 @@ export default function Dashboard() {
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/api/products");
-      // Safety Check: Ensure data is an array
       if (Array.isArray(response.data)) {
         setProducts(response.data);
       } else {
         console.error("API did not return an array:", response.data);
-        // Optional: Set error if it's not what we expect
-        // setError("Formato de respuesta inválido");
       }
       setLoading(false);
     } catch (err) {
@@ -45,8 +51,21 @@ export default function Dashboard() {
     }
   };
 
+  // Fetch Today's Sales
+  const fetchTodaySales = async () => {
+    try {
+      const response = await axios.get("/api/products/ventas-hoy");
+      if (response.data?.summary) {
+        setTodaySales(response.data.summary);
+      }
+    } catch (err) {
+      console.error("Error fetching today's sales:", err);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchTodaySales();
   }, []);
 
   // Calculate Stats
@@ -127,6 +146,12 @@ export default function Dashboard() {
     }
   };
 
+  // Open Edit Modal (triggered from Table row click)
+  const openEditModal = (product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
+
   // Handle Main Sale Button (General Action)
   const handleMainSaleClick = () => {
     if (products.length === 0) {
@@ -145,9 +170,8 @@ export default function Dashboard() {
         sku,
         quantity: Number(quantity),
       });
-      // Refresh list
       await fetchProducts();
-      // Success is implicit, Modal closes. Optional: Toast/Alert
+      await fetchTodaySales();
       console.log("Venta registrada");
     } catch (err) {
       console.error(err);
@@ -216,7 +240,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Section */}
-        <StatsCards stats={stats} />
+        <StatsCards stats={stats} todaySales={todaySales} />
 
         {/* Charts Section */}
         {!loading && (
@@ -262,6 +286,7 @@ export default function Dashboard() {
                   error={error}
                   onSale={openSaleModal}
                   onAddStock={openAddStockModal}
+                  onEdit={openEditModal}
                 />
               </div>
             </div>
@@ -282,13 +307,22 @@ export default function Dashboard() {
                 Acciones
               </h3>
               <div className="space-y-3">
-                <button className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg transition-colors text-sm font-medium">
+                <button 
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg transition-colors text-sm font-medium"
+                >
                   Ver Reportes
                 </button>
-                <button className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg transition-colors text-sm font-medium">
+                <button 
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg transition-colors text-sm font-medium"
+                >
                   Exportar Datos
                 </button>
-                <button className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg transition-colors text-sm font-medium">
+                <button 
+                  onClick={() => setIsConfigModalOpen(true)}
+                  className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg transition-colors text-sm font-medium"
+                >
                   Configuración
                 </button>
               </div>
@@ -319,6 +353,28 @@ export default function Dashboard() {
         onClose={() => setIsAddStockModalOpen(false)}
         onConfirm={handleConfirmAddStock}
         product={selectedProduct}
+      />
+
+      <ReportesModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
+
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        product={selectedProduct}
+        onProductUpdated={fetchProducts}
+      />
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+      />
+
+      <ConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
       />
     </div>
   );
